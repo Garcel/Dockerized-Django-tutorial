@@ -1,0 +1,13 @@
+version: "2.1"
+
+services:
+    db:
+        image: postgres:12.3-alpine
+        env_file: .env
+        volumes:
+            - dockerized_django_tutorial_data:/var/lib/postgresql/data/pgdata
+
+    web:
+        build: 
+            context: ./webapp
+        env_file: .env
