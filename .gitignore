@@ -7,5 +7,9 @@
 # Django stuff:
 **/*.log
 
+# Coverage
+.coverage
+webapp/htmlcov/**
+
 # IDE
 .vscode/**
