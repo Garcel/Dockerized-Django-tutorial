@@ -2,7 +2,8 @@ from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views import generic
 from django.urls import reverse
-from django.db.models import F
+from django.db.models import F, Exists
+from django.utils import timezone
 
 from .models import Question, Choice
 
@@ -11,16 +12,48 @@ class IndexView(generic.ListView):
     context_object_name = 'latest_question_list'
 
     def get_queryset(self):
-        """Return the last five published questions."""
-        return Question.objects.order_by('-pub_date')[:5]
+        """
+        For admin users return all published questions.
+
+        For non admin users return the last five published questions, excluding:
+            - those set to be published in the future 
+            - those not having any Choices
+        """
+        qs = None
+        if self.request.user.is_superuser:
+            qs = Question.objects.all()
+        else:
+            qs = Question.objects.filter(
+                pub_date__lte=timezone.now(),
+                choice__isnull=False
+            ).all()
+        return qs.order_by('-pub_date')[:5]
 
 class DetailView(generic.DetailView):
     model = Question
     template_name = 'polls/detail.html'
 
+    def get_queryset(self):
+        """
+        Excludes any questions that aren't published yet.
+        """
+        if self.request.user.is_superuser:
+            return Question.objects
+        else:
+            return Question.objects.filter(
+                pub_date__lte=timezone.now(),
+                choice__isnull=False
+            )
+
 class ResultsView(generic.DetailView):
     model = Question
     template_name = 'polls/results.html'
+
+    def get_queryset(self):
+        """
+        Excludes any questions that aren't published yet.
+        """
+        return Question.objects.filter(pub_date__lte=timezone.now())
 
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)

@@ -6,3 +6,6 @@
 
 # Django stuff:
 **/*.log
+
+# IDE
+.vscode/**
