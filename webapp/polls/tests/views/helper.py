@@ -23,7 +23,9 @@ def create_choice(question, choice_text):
     """
     Create a Choice with the given `choice_text` and for the given Question
     """
-    return Choice.objects.create(question=question, choice_text=choice_text)
+    choice = Choice.objects.create(question=question, choice_text=choice_text)
+    question.choice_set.add(choice)
+    return choice
 
 def create_question_without_choices(question_text, days):
     """

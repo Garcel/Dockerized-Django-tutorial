@@ -110,3 +110,32 @@ class QuestionDetailViewTests(TestCase):
         url = reverse('polls:detail', args=(question_no_choices.id,))
         response = self.client.get(url)
         self.assertContains(response, question_no_choices.question_text)
+
+    # Test voting
+    def test_vote_when_none_choice_was_selected(self):
+        """
+        When none choice was selected then the question voting form is redisplayed
+        showing an error message.
+        """
+        question_no_choices = create_question_without_choices(question_text="Question wihout Choices.", days=-1)
+        url = reverse('polls:vote', args=(question_no_choices.id,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, question_no_choices)
+        self.assertTrue('error_message' in response.context)
+        self.assertEqual(response.context['error_message'], "You didn't select a choice.")
+
+    def test_vote_when_a_choice_was_selected(self):
+        """
+        When a choice was selected then the votes of the choice are incremented by one unit
+        and the view is redirected to 'polls:results: 
+        """
+        question = create_question(question_text="Question with choices", days=-1)
+        choice = question.choice_set.get()
+        self.assertEqual(choice.votes, 0)
+
+        url = reverse('polls:vote', args=(question.id,))
+        response = self.client.post(url, {'choice' : choice.id, })
+        choice.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(choice.votes, 1)
