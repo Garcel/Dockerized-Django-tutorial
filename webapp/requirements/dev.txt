@@ -1,5 +1,5 @@
 -r base.txt
 
-django-debug-toolbar==2.2
+django-debug-toolbar==2.2.1
 django-extensions==2.2.9
 coverage==5.1
